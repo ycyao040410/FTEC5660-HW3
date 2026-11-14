@@ -197,4 +197,13 @@ flowchart TD
 
 The agent uses rule-based routing to send points 1 and 5 to a single read-only SQL query and point 4 to the interview tool. The branches run concurrently, with at most four companies in flight. DeepSeek classifies the interview into a JSON verdict and supporting quotation. Python checks that the quotation appears in the interview after standardizing whitespace and Unicode composition. The agent consults the competitor when the customer interview yields no usable classification. The sales branch has a 90-second time limit per company. The application assembles the summary from SQL values and the verified quotation. If a branch errors or the interview evidence remains unusable, the runner receives an entry for that company with any available verdicts and a diagnostic message.
 ### Results
-Pending a complete public test with the live DeepSeek API. The Colab notebook writes the measured score and any disagreements to this section once the output checks pass.
+The agent was evaluated in Google Colab on all 20 companies in `public_test` using `deepseek-v4-flash`. The run used GitHub commit `1f5ab69bc777`.
+
+| Fisher point | Correct predictions |
+| --- | ---: |
+| Point 1 — Market potential for sales growth | 20/20 |
+| Point 4 — Above-average sales organization | 20/20 |
+| Point 5 — Attractive profit margins | 20/20 |
+| Total | 60/60 |
+
+The run achieved **100.0% balanced accuracy** in **7.3 seconds** of wall-clock time. All 60 predictions matched the public ground-truth labels, and the run generated `results.csv`.
