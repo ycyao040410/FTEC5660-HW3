@@ -174,10 +174,27 @@ names and wording, and scores your 3 points only.
 > to students: this is your report, see the homework description.
 
 ### My 3 points and rules
-> for each point: why you chose it, your PASS rule in one or two sentences, and the evidence it uses. Quote Fisher where it helps.
+**Point 1 — Market potential for sales growth.** I chose this point because an unusually strong multi-year sales record is observable evidence of demand for a company's products or services. Fisher discusses judging growth over several years in Part One, Chapter 3, pp. 47–48. The company passes if its cumulative FY2023–FY2025 revenue growth is positive and exceeds its own industry's two-year growth median. The evidence comes from `orders`, `company`, and `industry_medians`.
+
+**Point 4 — Above-average sales organization.** I chose this point because customer experience reveals sales capabilities that revenue alone cannot identify, such as technical advice and responsive after-sales support. Fisher discusses the role of the sales organization in long-term growth in Chapter 3, pp. 60–62. The company passes if an informed interview shows knowledgeable, proactive, or unusually effective sales support. Concrete signs of weak support receive FAIL. The customer interview on `sales_team` is the first source, and the competitor is consulted if the first answer yields no usable classification.
+
+**Point 5 — Worthwhile profit margin.** I chose this point because sales growth and the share of sales converted into operating profit measure different aspects of performance. Fisher discusses operating profit per dollar of sales and comparisons across firms and years in Chapter 3, pp. 62–63. The company passes if its FY2025 operating margin is positive and above the median for its own industry. Revenue comes from `orders`, costs from `monthly_costs`, and the benchmark from `company` and `industry_medians`. The single-year margin is the dataset proxy used for this point.
 
 ### Design
-> a visualization of your agent design and one paragraph describing it.
+```mermaid
+flowchart TD
+    A[Company tools] --> B[SQL for points 1 and 5]
+    A --> C[Customer sales interview]
+    B --> D[Metrics and verdicts]
+    C --> E[DeepSeek JSON classification]
+    E --> F{Valid verdict and quote?}
+    F -->|Yes| G[Assemble result]
+    F -->|No, customer round| H[Competitor interview]
+    H --> E
+    F -->|No, competitor round| G
+    D --> G
+```
 
+The agent uses rule-based routing to send points 1 and 5 to a single read-only SQL query and point 4 to the interview tool. The branches run concurrently, with at most four companies in flight. DeepSeek classifies the interview into a JSON verdict and supporting quotation. Python checks that the quotation appears in the interview after standardizing whitespace and Unicode composition. The agent consults the competitor when the customer interview yields no usable classification. The sales branch has a 90-second time limit per company. The application assembles the summary from SQL values and the verified quotation. If a branch errors or the interview evidence remains unusable, the runner receives an entry for that company with any available verdicts and a diagnostic message.
 ### Results
-> your point score on `public_test`, the companies where your verdicts disagree with the public answers, and why.
+Pending a complete public test with the live DeepSeek API. The Colab notebook writes the measured score and any disagreements to this section once the output checks pass.
