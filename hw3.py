@@ -7,8 +7,10 @@ import argparse
 import asyncio
 import csv
 import json
+import os
 import sqlite3
 import threading
+import unicodedata
 import zlib
 from pathlib import Path
 from typing import Any
@@ -39,6 +41,8 @@ FISHER_POINTS = {
     15: "Does the company have a management of unquestionable integrity?",
 }
 VERDICTS = ("PASS", "FAIL")
+MAX_COMPANIES_IN_FLIGHT = 4
+SALES_TIMEOUT_SECONDS = 90
 
 
 def load_env_file(path: Path = Path(".env")) -> None:
@@ -53,6 +57,7 @@ def load_env_file(path: Path = Path(".env")) -> None:
             continue
         key, value = line.split("=", 1)
         os.environ.setdefault(key.strip(), value.strip().strip("\"'"))
+
 
 FINANCIAL_SQL = """
 WITH sales AS (
@@ -166,16 +171,12 @@ CHOSEN_POINTS: list[int] = [1, 4, 5]  ### YOUR CODE HERE
 
 
 def build_agent() -> Any:
-    """Create and return your model or agent once.
+    """Build the shared model once using the process environment.
 
-    Suggested imports:
-        from langchain_deepseek import ChatDeepSeek
-        from langchain.agents import create_agent
-
-    Use the DeepSeek model named by ``MODEL_NAME``. The API key is loaded
-    from .env. Each company has its own tools (see ``analyze_companies``), so
-    you will probably create one tool-calling agent per company there.
+    The Colab notebook injects the key into the child process. The starter
+    runner can also load a local .env before calling this function.
     """
+    ### YOUR CODE HERE
     if not os.getenv("DEEPSEEK_API_KEY", "").strip():
         return None
     from langchain_deepseek import ChatDeepSeek
@@ -224,7 +225,7 @@ async def analyze_companies(agent: Any, companies: dict[str, list[Any]]) -> dict
     You may analyse companies in parallel (e.g. ``asyncio.gather``).
     """
     ### YOUR CODE HERE
- limit = asyncio.Semaphore(MAX_COMPANIES_IN_FLIGHT)
+    limit = asyncio.Semaphore(MAX_COMPANIES_IN_FLIGHT)
 
     async def analyze_one(name: str, tools: list[Any]) -> tuple[str, dict[str, Any]]:
         try:
